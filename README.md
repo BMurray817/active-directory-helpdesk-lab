@@ -1,27 +1,29 @@
 # Active Directory & IT Support Home Lab
 
-A hands-on IT support project simulating common help desk and Windows system administration tasks in a small business environment.
+A hands-on IT support project demonstrating Windows Server administration, Active Directory management, networking, troubleshooting, and common help desk responsibilities in a simulated business environment.
 
 ## Project Overview
 
-I built a virtual IT environment for a fictional company, Murray Technologies, to gain practical experience with Windows Server, Active Directory, networking, user account management, and troubleshooting.
+I built a virtual IT environment for a fictional company called **Murray Technologies** to gain practical experience with the technologies and tasks commonly used by IT support teams.
 
-The lab includes a Windows Server 2025 domain controller and a Windows 11 workstation connected through a private VirtualBox network.
+Using Oracle VirtualBox, I configured a Windows Server 2025 domain controller and a Windows 11 Enterprise workstation. I then used the environment to practice managing employee accounts, troubleshooting login issues, configuring security permissions, and deploying Group Policy settings.
 
-I used this environment to simulate employee onboarding, password resets, account lockouts, offboarding, file access permissions, and Group Policy administration.
+The project includes four documented help desk tickets, screenshots of completed tasks, and a network architecture diagram.
 
-## Technologies Used
+## Network Architecture
 
-- Windows Server 2025
-- Windows 11 Enterprise
-- Oracle VirtualBox
-- Active Directory Domain Services (AD DS)
-- DNS
-- Group Policy Management
-- Windows PowerShell
-- NTFS and SMB file sharing
+The lab consists of two virtual machines connected through a private VirtualBox Internal Network.
 
-## Lab Environment
+- **DC01:** Windows Server 2025 domain controller running Active Directory Domain Services, DNS, Group Policy, and file sharing.
+- **PC01:** Windows 11 Enterprise workstation joined to the `murraytech.local` domain.
+- **Internal Network:** MurrayTech-LAN (`192.168.50.0/24`).
+- **Internet Access:** DC01 uses a separate NAT adapter.
+
+### Network Diagram
+
+![Active Directory Lab Network Diagram](diagrams/network-diagram.png)
+
+### Lab Environment
 
 | Device | Operating System | IP Address | Purpose |
 |---|---|---|---|
@@ -32,13 +34,26 @@ I used this environment to simulate employee onboarding, password resets, accoun
 
 **Network:** `192.168.50.0/24`
 
-The domain controller uses two network adapters: NAT for internet access and an isolated internal network for communication with PC01.
+PC01 uses DC01 (`192.168.50.10`) as its DNS server. The internal network allows the virtual machines to communicate while remaining separate from the physical network.
+
+## Technologies Used
+
+- Windows Server 2025
+- Windows 11 Enterprise
+- Oracle VirtualBox
+- Active Directory Domain Services (AD DS)
+- DNS
+- Group Policy Management
+- Windows PowerShell
+- NTFS Permissions
+- SMB File Sharing
 
 ## Active Directory Configuration
 
-Created a new Active Directory forest and configured organizational units for the fictional company's departments.
+I installed Active Directory Domain Services, created a new domain forest, and configured organizational units to organize users and computers.
 
-Organizational Units:
+### Organizational Units
+
 - Departments
   - IT
   - Sales
@@ -46,46 +61,138 @@ Organizational Units:
 - Workstations
 - Disabled Users
 
-Created fictional employee accounts and assigned users to department-based security groups.
+### Security Groups
 
-Security Groups:
-- SG_IT
-- SG_Sales
-- SG_HR
+Created department-based security groups to manage access to company resources:
 
-Joined a Windows 11 workstation to the domain and verified domain authentication using PowerShell.
+- `SG_IT`
+- `SG_Sales`
+- `SG_HR`
+
+I also created fictional employee accounts, assigned them to the appropriate groups, joined PC01 to the domain, and verified domain authentication.
+
+### Active Directory Structure
+
+![Active Directory Structure](screenshots/active-directory-structure.png)
+
+### Domain Authentication
+
+![Domain User Login](screenshots/domain-user-login.png)
 
 ## Help Desk Troubleshooting Scenarios
 
-### HD-001: Password Reset
-Simulated a forgotten password request, reset the employee's password through Active Directory, required a password change at next sign-in, and verified successful authentication.
+I completed four simulated help desk tickets covering common employee account management and authentication issues.
 
-### HD-002: Account Lockout
-Configured an account lockout policy, simulated repeated failed sign-in attempts, identified the locked account, and restored access using Active Directory and PowerShell.
+### HD-001 — Password Reset
 
-### HD-003: Employee Onboarding
-Created a new employee account, configured account attributes, assigned department security group membership, and verified the employee could sign in to the domain.
+**Scenario:** A Sales employee forgot their domain password and could not sign in.
 
-### HD-004: Employee Offboarding
-Disabled a departing employee's account, removed department security group membership, moved the account to a Disabled Users OU, and verified that new domain sign-in was denied.
+**Actions Taken:**
+- Located the employee's account in Active Directory.
+- Reset the account password.
+- Required a password change at the next sign-in.
+- Verified successful authentication on PC01.
+
+**Result:** Employee access was restored.
+
+[View HD-001: Password Reset Ticket](tickets/HD-001-password-reset.md)
+
+### HD-002 — Account Lockout Troubleshooting
+
+**Scenario:** A Sales employee's account became locked after multiple incorrect password attempts.
+
+**Actions Taken:**
+- Configured an account lockout policy with a five-attempt threshold.
+- Simulated repeated failed sign-in attempts.
+- Identified the locked account in Active Directory.
+- Unlocked the account and verified successful authentication.
+
+**Result:** Employee access was restored without resetting the password.
+
+[View HD-002: Account Lockout Ticket](tickets/HD-002-account-lockout.md)
+
+### HD-003 — New Employee Onboarding
+
+**Scenario:** A new HR employee needed a domain account and department access.
+
+**Actions Taken:**
+- Created a new Active Directory user account.
+- Assigned the employee to the HR organizational unit.
+- Added the account to the `SG_HR` security group.
+- Verified successful login on the domain-joined workstation.
+
+**Result:** The employee's account was provisioned and successfully tested.
+
+[View HD-003: Employee Onboarding Ticket](tickets/HD-003-onboarding.md)
+
+### HD-004 — Employee Offboarding
+
+**Scenario:** A departing Sales employee needed to have their access revoked.
+
+**Actions Taken:**
+- Disabled the employee's Active Directory account.
+- Removed the account from the `SG_Sales` security group.
+- Moved the account to the Disabled Users organizational unit.
+- Tested domain authentication using the disabled account.
+
+**Result:** The account was disabled and further domain sign-in was denied.
+
+[View HD-004: Employee Offboarding Ticket](tickets/HD-004-offboarding.md)
 
 ## File Sharing and Access Control
 
-Created a Sales department shared folder on Windows Server.
+I created a shared folder for the Sales department and configured access using Active Directory security groups.
 
-Configured NTFS and SMB share permissions using the SG_Sales security group.
+The folder was created at `C:\CompanyShares\Sales` on DC01 and shared over the network as `\\DC01\Sales`.
 
-Verified that an authorized Sales employee could access and modify files while an HR employee was denied access.
+### Configuration
+
+- Configured NTFS permissions for the `SG_Sales` security group.
+- Configured SMB share permissions.
+- Granted authorized Sales users access to the shared folder.
+- Tested access using accounts from different departments.
+
+### Verification
+
+A Sales employee successfully accessed the shared folder, while an HR employee was denied access.
+
+**Sales Access — Successful**
+
+![Sales Folder Access](screenshots/sales-folder-access-success.png)
+
+**HR Access — Denied**
+
+![HR Folder Access Denied](screenshots/hr-folder-access-denied.png)
+
+This demonstrated how security groups and file permissions can be used to restrict access to department resources.
 
 ## Group Policy Configuration
 
-Created a Group Policy Object named `Sales - Map Network Drive`.
+I created a Group Policy Object named `Sales - Map Network Drive` to automatically map the Sales shared folder for department users.
 
-Configured Group Policy Preferences to automatically map the Sales shared folder as drive S: for users in the Sales organizational unit.
+### Configuration
 
-Verified the mapped drive on PC01 and checked Group Policy application using `gpresult`.
+- Created a new Group Policy Object.
+- Configured Group Policy Preferences for drive mapping.
+- Assigned drive letter `S:` to the Sales shared folder.
+- Linked the GPO to the Sales organizational unit.
+- Verified that the mapped drive appeared for an authorized user.
+
+### Verification
+
+The Sales employee successfully received the mapped network drive on PC01.
+
+**Group Policy Drive Mapping Configuration**
+
+![Group Policy Settings](screenshots/GPO-drive-mapping-settings.png)
+
+**Mapped Drive Verification**
+
+![Mapped Drive Success](screenshots/GPO-mapped-drive-success.png)
 
 ## PowerShell Commands Practiced
+
+I used PowerShell and Windows command-line tools to inspect domain settings, verify group memberships, troubleshoot accounts, and confirm policy application.
 
 ```powershell
 Get-ADDomain
@@ -99,27 +206,38 @@ gpresult /r /scope user
 whoami /groups
 ```
 
+These commands helped me become more comfortable working with Windows administration and troubleshooting tools.
+
 ## Project Documentation
+
+Additional evidence and documentation are available in the repository:
 
 - [Screenshots](screenshots/)
 - [Help Desk Tickets](tickets/)
-- [Network Diagram](diagrams/)
+- [Network Architecture Diagram](diagrams/network-diagram.png)
 
 ## Skills Demonstrated
 
 - Windows Server administration
 - Active Directory user and group management
-- Domain-joined workstation configuration
-- DNS and basic TCP/IP networking
-- Account provisioning and deprovisioning
+- Employee onboarding and offboarding
 - Password reset and account lockout troubleshooting
-- Group Policy configuration
-- NTFS and SMB permissions
-- PowerShell administration
-- Technical documentation
+- Domain-joined workstation configuration
+- DNS and TCP/IP networking fundamentals
+- Group Policy configuration and verification
+- NTFS and SMB share permissions
+- Role-based access control
+- PowerShell and Windows command-line tools
+- Technical troubleshooting and documentation
 
 ## Project Summary
 
-This project gave me practical experience building and administering a small Windows domain environment. By completing realistic help desk scenarios, I developed a better understanding of how IT support teams manage employee accounts, troubleshoot authentication problems, and control access to company resources.
+Building this lab helped me better understand how Windows-based business environments are configured and supported.
 
-All employees, company details, and help desk scenarios in this project are fictional and were created for educational purposes.
+Rather than only studying Active Directory concepts, I was able to create a working domain, manage user accounts, troubleshoot authentication issues, configure file access, and verify Group Policy settings.
+
+The experience strengthened my foundational IT support skills and gave me practical examples of tasks commonly performed by help desk technicians and junior systems administrators.
+
+---
+
+*This project was created for educational and portfolio purposes. Murray Technologies, its employees, and all help desk scenarios are fictional.*
